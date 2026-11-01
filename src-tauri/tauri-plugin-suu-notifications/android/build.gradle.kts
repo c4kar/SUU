@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.c4kar.suu.notifications"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 26
