@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-request-one-ui-permissions"
+description = "Enables the request_one_ui_permissions command without any pre-configured scope."
+commands.allow = ["request_one_ui_permissions"]
+
+[[permission]]
+identifier = "deny-request-one-ui-permissions"
+description = "Denies the request_one_ui_permissions command without any pre-configured scope."
+commands.deny = ["request_one_ui_permissions"]

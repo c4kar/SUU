@@ -1,0 +1,9 @@
+"$schema" = "schemas/schema.json"
+
+[default]
+description = "Default permissions for SUU notifications plugin"
+permissions = [
+  "allow-reschedule-next-reminder",
+  "allow-request-one-ui-permissions",
+  "allow-consume-launch-intent"
+]

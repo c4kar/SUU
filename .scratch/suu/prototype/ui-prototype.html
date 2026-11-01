@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SUU — Arayüz, Hızlı Kayıt ve Tepkisel Animasyon Prototipi (PROTOTYPE)</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #1e293b;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --water: #0ea5e9;
+      --water-deep: #0284c7;
+      --other: #f59e0b;
+      --tea: #d97706;
+      --coffee: #78350f;
+      --ayran: #0d9488;
+      --success: #10b981;
+      --border: #e2e8f0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body {
+      background: var(--bg);
+      color: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 16px 100px;
+    }
+    .proto-header {
+      max-width: 1120px;
+      width: 100%;
+      margin-bottom: 18px;
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .proto-badge {
+      background: #f59e0b;
+      color: #0f172a;
+      font-weight: 800;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .proto-title { font-size: 16px; font-weight: 700; margin-top: 4px; }
+    .proto-sub { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+
+    .workspace {
+      max-width: 1120px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 390px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+    @media (max-width: 860px) {
+      .workspace { grid-template-columns: 1fr; justify-items: center; }
+    }
+
+    /* Samsung S24 / One UI Phone Frame */
+    .phone-frame {
+      width: 390px;
+      height: 790px;
+      background: #f8fafc;
+      color: var(--text);
+      border-radius: 42px;
+      border: 10px solid #1e293b;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6), 0 0 0 2px #475569;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .status-bar {
+      height: 36px;
+      padding: 8px 22px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #334155;
+      background: inherit;
+      z-index: 5;
+    }
+    .camera-hole {
+      width: 11px;
+      height: 11px;
+      background: #0f172a;
+      border-radius: 50%;
+    }
+    .app-Topbar {
+      padding: 10px 18px 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .day-tabs {
+      display: inline-flex;
+      background: #e2e8f0;
+      padding: 3px;
+      border-radius: 999px;
+      gap: 2px;
+    }
+    .day-tab {
+      border: none;
+      background: transparent;
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #475569;
+      cursor: pointer;
+    }
+    .day-tab.active {
+      background: #ffffff;
+      color: #0f172a;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .streak-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      color: #b45309;
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .screen-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 18px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Variant A: Canlı Su Haznesi (Tank) */
+    .tank-wrap {
+      position: relative;
+      height: 270px;
+      border-radius: 28px;
+      background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%);
+      border: 2px solid #bae6fd;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      box-shadow: inset 0 4px 16px rgba(14, 165, 233, 0.12);
+    }
+    .tank-fill-water {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(180deg, rgba(14, 165, 233, 0.78) 0%, rgba(2, 132, 199, 0.92) 100%);
+      transition: height 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+      z-index: 1;
+    }
+    .tank-fill-water::before {
+      content: "";
+      position: absolute;
+      top: -10px;
+      left: -10%;
+      width: 120%;
+      height: 20px;
+      background: rgba(56, 189, 248, 0.55);
+      border-radius: 50%;
+      animation: wavePulse 2.4s ease-in-out infinite alternate;
+    }
+    .tank-fill-other {
+      position: absolute;
+      left: 0;
+      right: 0;
+      background: repeating-linear-gradient(
+        135deg,
+        rgba(245, 158, 11, 0.75),
+        rgba(245, 158, 11, 0.75) 10px,
+        rgba(217, 119, 6, 0.75) 10px,
+        rgba(217, 119, 6, 0.75) 20px
+      );
+      transition: height 0.55s cubic-bezier(0.22, 1, 0.36, 1), bottom 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+      z-index: 2;
+      border-top: 2px dashed #fff;
+    }
+    @keyframes wavePulse {
+      from { transform: translateX(-3%) scaleY(0.9); }
+      to { transform: translateX(3%) scaleY(1.15); }
+    }
+    .tank-overlay {
+      position: relative;
+      z-index: 3;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.86);
+      backdrop-filter: blur(6px);
+      padding: 14px 22px;
+      border-radius: 22px;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+    }
+    .tank-pct { font-size: 38px; font-weight: 900; color: #0f172a; line-height: 1; }
+    .tank-ml { font-size: 15px; font-weight: 700; color: #334155; margin-top: 4px; }
+    .tank-cups { font-size: 12px; font-weight: 600; color: #0284c7; margin-top: 4px; }
+
+    .quota-strip {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .quota-box {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 12px;
+    }
+    .quota-label { font-size: 11px; font-weight: 700; color: var(--muted); display: flex; justify-content: space-between; }
+    .quota-val { font-size: 14px; font-weight: 800; margin-top: 3px; }
+    .mini-bar { height: 6px; background: #e2e8f0; border-radius: 999px; margin-top: 6px; overflow: hidden; }
+    .mini-fill { height: 100%; border-radius: 999px; transition: width 0.4s ease; }
+
+    /* Primary Quick Action Dock (Variant A) */
+    .quick-dock {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr 1fr;
+      gap: 8px;
+      margin-top: auto;
+    }
+    .dock-btn {
+      border: none;
+      border-radius: 18px;
+      padding: 14px 8px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+    .dock-btn:active { transform: scale(0.95); }
+    .dock-btn.primary-water {
+      background: linear-gradient(135deg, #0ea5e9, #0284c7);
+      color: #fff;
+      box-shadow: 0 8px 18px rgba(2, 132, 199, 0.32);
+    }
+    .dock-btn.sip-water {
+      background: #e0f2fe;
+      color: #0369a1;
+      border: 1px solid #bae6fd;
+    }
+    .dock-btn.other-btn {
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+    }
+    .dock-icon { font-size: 22px; }
+    .dock-title { font-size: 13px; font-weight: 800; }
+    .dock-sub { font-size: 11px; opacity: 0.85; font-weight: 600; }
+
+    /* Variant B: Direct Cup Grid (Çekmecesiz Tek Ekran) */
+    .compact-hero {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 14px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+    }
+    .hero-top { display: flex; justify-content: space-between; align-items: baseline; }
+    .hero-big { font-size: 26px; font-weight: 900; color: #0f172a; }
+    .hero-sub { font-size: 12px; font-weight: 700; color: #0284c7; }
+    .stacked-bar {
+      height: 18px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      margin: 10px 0 8px;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+    .sb-water { background: #0ea5e9; height: 100%; transition: width 0.4s ease; }
+    .sb-other { background: #f59e0b; height: 100%; transition: width 0.4s ease; }
+    .cup-grid-title { font-size: 12px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.04em; }
+    .cup-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+    }
+    .cup-card {
+      background: #ffffff;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 11px 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      text-align: left;
+      transition: transform 0.12s ease, border-color 0.15s ease;
+    }
+    .cup-card:active { transform: scale(0.96); }
+    .cup-card.water-card { border-color: #bae6fd; background: #f0f9ff; }
+    .cup-card.tea-card { border-color: #fde68a; background: #fffbeb; }
+    .cup-card.coffee-card { border-color: #e7e5e4; background: #fafaf9; }
+    .cup-card.ayran-card { border-color: #99f6e4; background: #f0fdfa; }
+    .cup-emoji { font-size: 24px; flex-shrink: 0; }
+    .cup-name { font-size: 13px; font-weight: 800; color: #0f172a; line-height: 1.15; }
+    .cup-meta { font-size: 11px; font-weight: 600; color: #64748b; margin-top: 2px; }
+
+    /* Variant C: İkili Halka + Bardak Diliyle Zaman Akışı */
+    .ring-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .ring-svg-wrap { position: relative; width: 112px; height: 112px; flex-shrink: 0; }
+    .ring-center-label {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 20px;
+    }
+    .ring-center-sub { font-size: 10px; font-weight: 700; color: #64748b; }
+
+    /* Log list */
+    .log-section {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 10px 12px;
+    }
+    .log-header {
+      font-size: 12px;
+      font-weight: 800;
+      color: #475569;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .log-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-top: 1px solid #f1f5f9;
+      font-size: 13px;
+    }
+    .log-item:first-of-type { border-top: none; }
+    .del-btn {
+      border: none;
+      background: #fee2e2;
+      color: #b91c1c;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    /* Quick Selection Drawer (Hızlı Seçim Çekmecesi) */
+    .drawer-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.48);
+      z-index: 20;
+      display: none;
+      align-items: flex-end;
+    }
+    .drawer-backdrop.open { display: flex; }
+    .drawer-sheet {
+      width: 100%;
+      background: #ffffff;
+      border-radius: 26px 26px 0 0;
+      padding: 16px 16px 22px;
+      max-height: 82%;
+      overflow-y: auto;
+      animation: slideUp 0.22s ease-out;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+    .drawer-handle {
+      width: 42px;
+      height: 5px;
+      background: #cbd5e1;
+      border-radius: 999px;
+      margin: 0 auto 12px;
+    }
+    .drawer-cat {
+      font-size: 12px;
+      font-weight: 800;
+      color: #475569;
+      margin: 10px 0 6px;
+    }
+
+    /* Warning Banner */
+    .quota-alert {
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      color: #92400e;
+      padding: 8px 11px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    /* Toast feedback */
+    .ripple-toast {
+      position: absolute;
+      top: 48px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0f172a;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 7px 14px;
+      border-radius: 999px;
+      z-index: 30;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      white-space: nowrap;
+    }
+    .ripple-toast.show { opacity: 0.95; }
+
+    /* Right Column: Samsung Notification & State Control Panel */
+    .sim-column {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+    }
+    .sim-card {
+      background: var(--panel);
+      border: 1px solid #334155;
+      border-radius: 18px;
+      padding: 16px 18px;
+    }
+    .sim-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #f8fafc;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .sim-desc { font-size: 12px; color: #94a3b8; margin-bottom: 12px; line-height: 1.4; }
+
+    /* Samsung One UI Notification Mock */
+    .oneui-notif {
+      background: #f1f5f9;
+      color: #0f172a;
+      border-radius: 22px;
+      padding: 14px 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    }
+    .oneui-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #475569;
+      font-weight: 700;
+    }
+    .oneui-app-icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      background: #0284c7;
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+    .oneui-body-title { font-size: 14px; font-weight: 800; margin-top: 6px; color: #0f172a; }
+    .oneui-body-text { font-size: 13px; color: #334155; margin-top: 2px; }
+    .oneui-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid #e2e8f0;
+    }
+    .oneui-btn {
+      flex: 1;
+      background: #e2e8f0;
+      border: none;
+      border-radius: 999px;
+      padding: 8px 6px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #0f172a;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .oneui-btn:hover { background: #cbd5e1; }
+    .oneui-btn.water-act { background: #e0f2fe; color: #0369a1; }
+
+    .scenario-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .scen-btn {
+      background: #0f172a;
+      color: #e2e8f0;
+      border: 1px solid #475569;
+      border-radius: 10px;
+      padding: 9px 11px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: left;
+    }
+    .scen-btn:hover { border-color: #38bdf8; color: #fff; }
+
+    .state-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      font-size: 12px;
+    }
+    .state-cell {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 8px 10px;
+    }
+    .state-cell-label { color: #94a3b8; font-size: 11px; }
+    .state-cell-val { font-size: 14px; font-weight: 800; color: #f8fafc; margin-top: 2px; }
+
+    /* Floating Prototype Variant Switcher (per prototype/UI.md) */
+    .proto-switcher {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0f172a;
+      border: 2px solid #38bdf8;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.65);
+      border-radius: 999px;
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 100;
+    }
+    .sw-arrow {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: none;
+      background: #1e293b;
+      color: #f8fafc;
+      font-size: 16px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    .sw-arrow:hover { background: #334155; }
+    .sw-label {
+      font-size: 13px;
+      font-weight: 800;
+      color: #f8fafc;
+      min-width: 250px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Three variants of the SUU home & quick-add screen, switchable via ?variant=A|B|C -->
+  <div class="proto-header">
+    <div>
+      <span class="proto-badge">PROTOTYPE — Kullan-At Arayüz & Etkileşim Doğrulaması</span>
+      <div class="proto-title">SUU — Ana Ekran, Hızlı Kayıt Çekmecesi ve Samsung One UI Bildirim Akışı</div>
+      <div class="proto-sub">Alt bardaki oklarla veya klavyeden <b>← / →</b> tuşlarıyla 3 farklı ekran tasarımını (A, B, C) canlı test edebilirsin.</div>
+    </div>
+  </div>
+
+  <div class="workspace">
+    <!-- Left: Interactive Samsung Phone Frame -->
+    <div class="phone-frame">
+      <div class="status-bar">
+        <span>14:30</span>
+        <div class="camera-hole"></div>
+        <span>5G 🔋 88%</span>
+      </div>
+
+      <div id="rippleToast" class="ripple-toast">💧 +1 Su Bardağı eklendi!</div>
+
+      <div class="app-Topbar">
+        <div class="day-tabs">
+          <button class="day-tab active" id="tabToday" onclick="switchDay('today')">Bugün</button>
+          <button class="day-tab" id="tabYesterday" onclick="switchDay('yesterday')">Dün (Telafi)</button>
+        </div>
+        <div class="streak-pill" id="streakBadge">🔥 7 Gün · 🛡️ Kalkan Hazır</div>
+      </div>
+
+      <!-- Dynamic Screen Content rendered per Variant -->
+      <div class="screen-body" id="screenBody"></div>
+
+      <!-- Shared Quick-Add Drawer (Opened by "Diğer" in Notification or Variant A/C button) -->
+      <div class="drawer-backdrop" id="quickDrawer" onclick="if(event.target===this) closeDrawer()">
+        <div class="drawer-sheet">
+          <div class="drawer-handle"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-size:16px;font-weight:900;">Ne İçtin? (Tek Dokunuşla Ekle)</span>
+            <button onclick="closeDrawer()" style="border:none;background:#f1f5f9;padding:5px 10px;border-radius:999px;font-weight:800;cursor:pointer;">Kapat ✕</button>
+          </div>
+          <div id="drawerContent"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Samsung Notification Simulator & Guided Scenarios -->
+    <div class="sim-column">
+      <div class="sim-card">
+        <div class="sim-title">
+          <span>📲 Samsung One UI Bildirim Simülatörü (`IMPORTANCE_HIGH`)</span>
+          <span style="font-size:11px;color:#38bdf8;" id="timerStatus">Sonraki hatırlatma: 2 saat sonra</span>
+        </div>
+        <div class="sim-desc">
+          Telefon kilitliyken veya üstten bildirim düştüğünde anne/ablanın göreceği gerçek bildirim kartı. İlk iki buton uygulamayı açmadan arka planda anında kayıt yapar; <b>Diğer</b> ise soldaki ekranda doğrudan <b>Hızlı Seçim Çekmecesini</b> açar.
+        </div>
+
+        <div class="oneui-notif">
+          <div class="oneui-top">
+            <span class="oneui-app-icon">💧</span>
+            <span>SUU · Şimdi</span>
+          </div>
+          <div class="oneui-body-title" id="notifTitle">Bir bardak suya ne dersin? 💧</div>
+          <div class="oneui-body-text" id="notifText">Bugünkü hedefinin tamamlanmasına 5 su bardağı kaldı.</div>
+          <div class="oneui-actions" id="notifActions">
+            <button class="oneui-btn water-act" onclick="logPortion('water_glass', true)">+Su (1 Su Bardağı)</button>
+            <button class="oneui-btn water-act" onclick="logPortion('water_sip', true)">+Su (1 Yudum)</button>
+            <button class="oneui-btn" onclick="openDrawerFromNotif()">Diğer</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sim-card">
+        <div class="sim-title">🧪 Hazır Test Senaryoları (Tek Tıkla Durumu Dene)</div>
+        <div class="sim-desc">
+          Kağıt üzerinde hayal etmesi zor uç durumları (Diğer İçecek Kotası %30 tavanı, %80 Koruma Eşiği, Dün telafisi) tek tıkla yükle:
+        </div>
+        <div class="scenario-grid">
+          <button class="scen-btn" onclick="runScenario('morning')">🌅 1. Yeni Gün Başlangıcı (2 Bardak Su + 1 Çay)</button>
+          <button class="scen-btn" onclick="runScenario('tea_cap')">🫖 2. %30 Çay/Kahve Kotası Doldu (5 Ajda Çay İçildi!)</button>
+          <button class="scen-btn" onclick="runScenario('near_goal')">🛡️ 3. %85 Koruma Eşiği (1 Bardak Eksik Kaldı)</button>
+          <button class="scen-btn" onclick="runScenario('goal_done')">🎉 4. Günlük Hedef %100 Tamamlandı (Bildirimler Sustu)</button>
+        </div>
+      </div>
+
+      <div class="sim-card">
+        <div class="sim-title">📊 Canlı Domain Durumu (State Inspector)</div>
+        <div class="state-grid" id="stateInspector"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Variant Switcher -->
+  <div class="proto-switcher">
+    <button class="sw-arrow" onclick="cycleVariant(-1)" title="Önceki Varyant (←)">←</button>
+    <div class="sw-label" id="variantLabel">Varyant A (Canlı Su Haznesi)</div>
+    <button class="sw-arrow" onclick="cycleVariant(1)" title="Sonraki Varyant (→)">→</button>
+  </div>
+
+  <script>
+    // =========================================================================
+    // 1. PURE DOMAIN MODULE (Liftable to Svelte 5 / Rust later)
+    // =========================================================================
+    const PORTIONS = {
+      water_glass: { id: 'water_glass', type: 'water', icon: '🥛', title: '1 Su Bardağı', sub: '200 ml saf su', ml: 200, factor: 1.0 },
+      water_sip:   { id: 'water_sip',   type: 'water', icon: '💧', title: '1 Yudum Su',   sub: '50 ml (1/4 bardak)', ml: 50,  factor: 1.0 },
+      water_mug:   { id: 'water_mug',   type: 'water', icon: '🫗', title: '1 Kupa Su',    sub: '300 ml saf su', ml: 300, factor: 1.0 },
+      water_bottle:{ id: 'water_bottle',type: 'water', icon: '🍼', title: '1 Şişe / Matara', sub: '500 ml saf su', ml: 500, factor: 1.0 },
+      tea_ince:    { id: 'tea_ince',    type: 'tea',   icon: '🫖', title: '1 İnce Belli Çay', sub: '100 ml (net 90 ml)', ml: 100, factor: 0.9 },
+      tea_ajda:    { id: 'tea_ajda',    type: 'tea',   icon: '🍵', title: '1 Ajda Çay',   sub: '150 ml (net 135 ml)', ml: 150, factor: 0.9 },
+      tea_mug:     { id: 'tea_mug',     type: 'tea',   icon: '☕', title: '1 Kupa Çay',   sub: '200 ml (net 180 ml)', ml: 200, factor: 0.9 },
+      coffee_turk: { id: 'coffee_turk', type: 'coffee',icon: '☕', title: '1 Fincan Türk Kahvesi', sub: '70 ml (net 56 ml)', ml: 70, factor: 0.8 },
+      coffee_mug:  { id: 'coffee_mug',  type: 'coffee',icon: '🥤', title: '1 Kupa Filtre Kahve', sub: '200 ml (net 160 ml)', ml: 200, factor: 0.8 },
+      ayran_small: { id: 'ayran_small', type: 'ayran', icon: '🥛', title: '1 Küçük Ayran', sub: '200 ml ayran', ml: 200, factor: 1.0 },
+      ayran_large: { id: 'ayran_large', type: 'ayran', icon: '🫙', title: '1 Büyük Ayran', sub: '300 ml ayran', ml: 300, factor: 1.0 }
+    };
+
+    function computeDayProgress(logs, goalMl) {
+      let pureWaterMl = 0;
+      let rawOtherEffectiveMl = 0;
+      for (const item of logs) {
+        const p = PORTIONS[item.portionId];
+        const eff = Math.round(p.ml * p.factor);
+        if (p.type === 'water') pureWaterMl += eff;
+        else rawOtherEffectiveMl += eff;
+      }
+      const otherCapMl = Math.round(goalMl * 0.30);
+      const minPureWaterMl = goalMl - otherCapMl;
+      const countedOtherMl = Math.min(rawOtherEffectiveMl, otherCapMl);
+      const overflowOtherMl = Math.max(0, rawOtherEffectiveMl - otherCapMl);
+      const totalEffectiveMl = pureWaterMl + countedOtherMl;
+      const pct = Math.min(100, Math.round((totalEffectiveMl / goalMl) * 100));
+      const remainingMl = Math.max(0, goalMl - totalEffectiveMl);
+      const remainingGlasses = Math.ceil(remainingMl / 200);
+      const isOtherCapReached = rawOtherEffectiveMl >= otherCapMl;
+
+      let streakOutcome = 'Mola Hakkı Devrede (<%80)';
+      if (pct >= 100) streakOutcome = 'Seri +1 Artar (%100)';
+      else if (pct >= 80) streakOutcome = 'Seri Korunur (%80–99)';
+
+      return {
+        goalMl, pureWaterMl, rawOtherEffectiveMl, otherCapMl, minPureWaterMl,
+        countedOtherMl, overflowOtherMl, totalEffectiveMl, pct,
+        remainingMl, remainingGlasses, isOtherCapReached, streakOutcome
+      };
+    }
+
+    function summarizeInCupLanguage(logs) {
+      if (!logs.length) return 'Henüz içecek kaydedilmedi.';
+      const counts = {};
+      for (const l of logs) counts[l.portionId] = (counts[l.portionId] || 0) + 1;
+      return Object.entries(counts)
+        .map(([id, c]) => `${PORTIONS[id].icon} ${c}× ${PORTIONS[id].title.replace(/^1 /, '')}`)
+        .join(' · ');
+    }
+
+    // =========================================================================
+    // 2. PROTOTYPE STATE & VARIANT ROUTER
+    // =========================================================================
+    const VARIANTS = [
+      { key: 'A', name: 'Varyant A — Canlı Su Haznesi + Alt 3\'lü Bar' },
+      { key: 'B', name: 'Varyant B — Doğrudan Bardak Izgarası (Çekmecesiz)' },
+      { key: 'C', name: 'Varyant C — İkili Halka + Bardak Dili Günlüğü' }
+    ];
+
+    const state = {
+      activeDay: 'today',
+      goalMl: 2000,
+      baseStreak: 6,
+      todayLogs: [
+        { id: 1, portionId: 'water_glass', time: '09:30' },
+        { id: 2, portionId: 'tea_ince', time: '10:15' },
+        { id: 3, portionId: 'water_glass', time: '12:40' }
+      ],
+      yesterdayLogs: [
+        { id: 101, portionId: 'water_glass', time: '10:00' },
+        { id: 102, portionId: 'water_glass', time: '12:30' },
+        { id: 103, portionId: 'water_glass', time: '15:00' },
+        { id: 104, portionId: 'water_glass', time: '18:00' },
+        { id: 105, portionId: 'water_glass', time: '20:00' },
+        { id: 106, portionId: 'tea_ajda', time: '21:00' },
+        { id: 107, portionId: 'tea_ajda', time: '21:45' }
+      ]
+    };
+
+    function getCurrentVariant() {
+      const params = new URLSearchParams(window.location.search);
+      const v = (params.get('variant') || 'A').toUpperCase();
+      return VARIANTS.some(x => x.key === v) ? v : 'A';
+    }
+
+    function setVariant(vKey) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('variant', vKey);
+      window.history.replaceState({}, '', url);
+      renderAll();
+    }
+
+    function cycleVariant(dir) {
+      const cur = getCurrentVariant();
+      const idx = VARIANTS.findIndex(v => v.key === cur);
+      const next = VARIANTS[(idx + dir + VARIANTS.length) % VARIANTS.length];
+      setVariant(next.key);
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+      if (e.key === 'ArrowLeft') cycleVariant(-1);
+      if (e.key === 'ArrowRight') cycleVariant(1);
+    });
+
+    function getActiveLogs() {
+      return state.activeDay === 'today' ? state.todayLogs : state.yesterdayLogs;
+    }
+
+    function switchDay(day) {
+      state.activeDay = day;
+      document.getElementById('tabToday').classList.toggle('active', day === 'today');
+      document.getElementById('tabYesterday').classList.toggle('active', day === 'yesterday');
+      renderAll();
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('rippleToast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+    }
+
+    function logPortion(portionId, fromNotif = false) {
+      const p = PORTIONS[portionId];
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+      getActiveLogs().unshift({ id: Date.now() + Math.random(), portionId, time: timeStr });
+      closeDrawer();
+      showToast(`${p.icon} +${p.title} eklendi! ${fromNotif ? '(Bildirimden)' : ''}`);
+      document.getElementById('timerStatus').textContent = 'Sayaç sıfırlandı: 2 saat sonra';
+      renderAll();
+    }
+
+    function removeLog(id) {
+      const arr = getActiveLogs();
+      const idx = arr.findIndex(x => x.id === id);
+      if (idx !== -1) arr.splice(idx, 1);
+      renderAll();
+    }
+
+    function openDrawer() {
+      document.getElementById('quickDrawer').classList.add('open');
+    }
+    function closeDrawer() {
+      document.getElementById('quickDrawer').classList.remove('open');
+    }
+    function openDrawerFromNotif() {
+      openDrawer();
+      showToast('📲 Bildirimde "Diğer" seçildi → Çekmece açıldı');
+    }
+
+    function runScenario(name) {
+      state.activeDay = 'today';
+      document.getElementById('tabToday').classList.add('active');
+      document.getElementById('tabYesterday').classList.remove('active');
+      if (name === 'morning') {
+        state.todayLogs = [
+          { id: 1, portionId: 'water_glass', time: '09:30' },
+          { id: 2, portionId: 'tea_ince', time: '10:15' },
+          { id: 3, portionId: 'water_glass', time: '11:45' }
+        ];
+      } else if (name === 'tea_cap') {
+        state.todayLogs = [
+          { id: 1, portionId: 'water_glass', time: '09:30' },
+          { id: 2, portionId: 'tea_ajda', time: '10:00' },
+          { id: 3, portionId: 'tea_ajda', time: '11:00' },
+          { id: 4, portionId: 'tea_ajda', time: '13:00' },
+          { id: 5, portionId: 'tea_ajda', time: '14:30' },
+          { id: 6, portionId: 'tea_ajda', time: '16:00' }
+        ];
+      } else if (name === 'near_goal') {
+        state.todayLogs = [
+          { id: 1, portionId: 'water_bottle', time: '10:00' },
+          { id: 2, portionId: 'water_bottle', time: '13:30' },
+          { id: 3, portionId: 'water_glass', time: '16:00' },
+          { id: 4, portionId: 'ayran_small', time: '19:00' },
+          { id: 5, portionId: 'tea_ajda', time: '20:30' },
+          { id: 6, portionId: 'tea_ajda', time: '21:15' }
+        ];
+      } else if (name === 'goal_done') {
+        state.todayLogs = [
+          { id: 1, portionId: 'water_bottle', time: '10:00' },
+          { id: 2, portionId: 'water_bottle', time: '13:00' },
+          { id: 3, portionId: 'water_bottle', time: '16:30' },
+          { id: 4, portionId: 'ayran_small', time: '19:00' },
+          { id: 5, portionId: 'tea_ajda', time: '20:30' },
+          { id: 6, portionId: 'tea_ajda', time: '21:00' },
+          { id: 7, portionId: 'water_sip', time: '21:30' }
+        ];
+      }
+      renderAll();
+    }
+
+    // =========================================================================
+    // 3. THREE STRUCTURALLY DIFFERENT UI VARIANTS
+    // =========================================================================
+    function renderVariantA(prog, logs) {
+      const waterH = Math.min(100, (prog.pureWaterMl / prog.goalMl) * 100);
+      const otherH = Math.min(100 - waterH, (prog.countedOtherMl / prog.goalMl) * 100);
+
+      return `
+        <div class="tank-wrap">
+          <div class="tank-fill-water" style="height:${waterH}%"></div>
+          <div class="tank-fill-other" style="bottom:${waterH}%;height:${otherH}%"></div>
+          <div class="tank-overlay">
+            <div class="tank-pct">%${prog.pct}</div>
+            <div class="tank-ml" style="color:#0284c7;font-size:16px;">
+              ${prog.remainingMl > 0
+                ? `Hedefe <b>${prog.remainingGlasses} Su Bardağı</b> kaldı`
+                : `🎉 Günlük Hedef Tamamlandı!`}
+            </div>
+            <div class="tank-cups" style="color:#64748b;">
+              ${summarizeInCupLanguage(logs)}
+            </div>
+          </div>
+        </div>
+
+        <div class="quota-strip">
+          <div class="quota-box">
+            <div class="quota-label"><span>💧 İçilen Saf Su</span></div>
+            <div class="quota-val" style="color:#0284c7;">${Math.round(prog.pureWaterMl / 200 * 10) / 10} Su Bardağı</div>
+            <div class="mini-bar"><div class="mini-fill" style="width:${Math.min(100,(prog.pureWaterMl/prog.minPureWaterMl)*100)}%;background:#0ea5e9;"></div></div>
+          </div>
+          <div class="quota-box">
+            <div class="quota-label"><span>🫖 Çay / Kahve / Ayran Hakkı</span><span>${prog.isOtherCapReached ? 'DOLDU' : ''}</span></div>
+            <div class="quota-val" style="color:#d97706;">%${Math.min(100, Math.round((prog.countedOtherMl/prog.otherCapMl)*100))} kullanıldı</div>
+            <div class="mini-bar"><div class="mini-fill" style="width:${Math.min(100,(prog.countedOtherMl/prog.otherCapMl)*100)}%;background:#f59e0b;"></div></div>
+          </div>
+        </div>
+
+        ${prog.isOtherCapReached ? `
+          <div class="quota-alert">
+            🫖 Bugünkü çay/kahve/ayran kotan (${prog.otherCapMl} ml) doldu! Kalan hedefini tamamlamak için <b>Saf Su</b> içmelisin.
+          </div>
+        ` : ''}
+
+        ${renderLogList(logs)}
+
+        <div class="quick-dock">
+          <button class="dock-btn primary-water" onclick="logPortion('water_glass')">
+            <span class="dock-icon">🥛</span>
+            <span class="dock-title">+1 Su Bardağı</span>
+            <span class="dock-sub">200 ml Su</span>
+          </button>
+          <button class="dock-btn sip-water" onclick="logPortion('water_sip')">
+            <span class="dock-icon">💧</span>
+            <span class="dock-title">+1 Yudum</span>
+            <span class="dock-sub">50 ml Su</span>
+          </button>
+          <button class="dock-btn other-btn" onclick="openDrawer()">
+            <span class="dock-icon">🫖☕</span>
+            <span class="dock-title">Diğer</span>
+            <span class="dock-sub">Çay·Kahve·Ayran</span>
+          </button>
+        </div>
+      `;
+    }
+
+    function renderVariantB(prog, logs) {
+      const waterW = Math.min(100, (prog.pureWaterMl / prog.goalMl) * 100);
+      const otherW = Math.min(100 - waterW, (prog.countedOtherMl / prog.goalMl) * 100);
+      const gridItems = ['water_glass', 'water_sip', 'tea_ince', 'tea_ajda', 'coffee_turk', 'ayran_small', 'water_mug', 'water_bottle'];
+
+      return `
+        <div class="compact-hero">
+          <div class="hero-top">
+            <div class="hero-big">%${prog.pct} <span style="font-size:14px;font-weight:700;color:#64748b;">(${prog.totalEffectiveMl}/${prog.goalMl} ml)</span></div>
+            <div class="hero-sub">${prog.remainingMl > 0 ? `${prog.remainingGlasses} bardak kaldı` : '🎉 Tamamlandı'}</div>
+          </div>
+          <div class="stacked-bar">
+            <div class="sb-water" style="width:${waterW}%"></div>
+            <div class="sb-other" style="width:${otherW}%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:#475569;">
+            <span>💧 Saf Su: ${prog.pureWaterMl}/${prog.minPureWaterMl} ml</span>
+            <span>🫖 Diğer Kota: ${prog.countedOtherMl}/${prog.otherCapMl} ml ${prog.isOtherCapReached ? '(DOLDU)' : ''}</span>
+          </div>
+        </div>
+
+        ${prog.isOtherCapReached ? `
+          <div class="quota-alert">
+            🫖 Çay/kahve kotan doldu. Aşağıdan çay/kahve eklemeye devam edebilirsin ama hedef çubuğu sadece <b>Su</b> ile ilerler.
+          </div>
+        ` : ''}
+
+        <div class="cup-grid-title">👇 Ne İçtiysen Tek Dokunuşla Bas (Çekmecesiz)</div>
+        <div class="cup-grid">
+          ${gridItems.map(id => {
+            const p = PORTIONS[id];
+            const cls = p.type === 'water' ? 'water-card' : p.type === 'tea' ? 'tea-card' : p.type === 'coffee' ? 'coffee-card' : 'ayran-card';
+            return `
+              <button class="cup-card ${cls}" onclick="logPortion('${id}')">
+                <span class="cup-emoji">${p.icon}</span>
+                <div>
+                  <div class="cup-name">+${p.title}</div>
+                  <div class="cup-meta">${p.sub}</div>
+                </div>
+              </button>
+            `;
+          }).join('')}
+        </div>
+
+        ${renderLogList(logs)}
+      `;
+    }
+
+    function renderVariantC(prog, logs) {
+      const outerR = 46;
+      const innerR = 34;
+      const outerC = 2 * Math.PI * outerR;
+      const innerC = 2 * Math.PI * innerR;
+      const outerOffset = outerC * (1 - prog.pct / 100);
+      const pureRatio = Math.min(1, prog.pureWaterMl / prog.minPureWaterMl);
+      const innerOffset = innerC * (1 - pureRatio);
+
+      return `
+        <div class="ring-card">
+          <div class="ring-svg-wrap">
+            <svg width="112" height="112" viewBox="0 0 112 112" style="transform:rotate(-90deg)">
+              <circle cx="56" cy="56" r="${outerR}" fill="none" stroke="#e2e8f0" stroke-width="9" />
+              <circle cx="56" cy="56" r="${outerR}" fill="none" stroke="#0ea5e9" stroke-width="9"
+                stroke-linecap="round" stroke-dasharray="${outerC}" stroke-dashoffset="${outerOffset}"
+                style="transition:stroke-dashoffset 0.5s ease" />
+              <circle cx="56" cy="56" r="${innerR}" fill="none" stroke="#fef3c7" stroke-width="7" />
+              <circle cx="56" cy="56" r="${innerR}" fill="none" stroke="#10b981" stroke-width="7"
+                stroke-linecap="round" stroke-dasharray="${innerC}" stroke-dashoffset="${innerOffset}"
+                style="transition:stroke-dashoffset 0.5s ease" />
+            </svg>
+            <div class="ring-center-label">
+              <span>%${prog.pct}</span>
+              <span class="ring-center-sub">${prog.remainingGlasses} bardak</span>
+            </div>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:15px;font-weight:900;color:#0f172a;">${prog.streakOutcome}</div>
+            <div style="font-size:12px;color:#475569;margin-top:4px;line-height:1.35;">
+              <b>Dış Halka (Mavi):</b> Toplam Hedef (${prog.totalEffectiveMl}/${prog.goalMl} ml)<br/>
+              <b>İç Halka (Yeşil):</b> %70 Saf Su Tabanı (${prog.pureWaterMl}/${prog.minPureWaterMl} ml)
+            </div>
+          </div>
+        </div>
+
+        <div class="quota-box" style="background:#f8fafc;">
+          <div class="quota-label"><span>📋 Bardak Diliyle Gün Özeti</span></div>
+          <div style="font-size:13px;font-weight:700;color:#0f172a;margin-top:4px;line-height:1.4;">
+            ${summarizeInCupLanguage(logs)}
+          </div>
+        </div>
+
+        ${prog.isOtherCapReached ? `
+          <div class="quota-alert">
+            🫖 %30 Çay/Kahve kotası (${prog.otherCapMl} ml) doldu! Kalan hedef için saf su eklemelisin.
+          </div>
+        ` : ''}
+
+        ${renderLogList(logs)}
+
+        <div class="quick-dock">
+          <button class="dock-btn primary-water" onclick="logPortion('water_glass')">
+            <span class="dock-icon">🥛</span>
+            <span class="dock-title">+1 Su Bardağı</span>
+          </button>
+          <button class="dock-btn sip-water" onclick="logPortion('water_sip')">
+            <span class="dock-icon">💧</span>
+            <span class="dock-title">+1 Yudum</span>
+          </button>
+          <button class="dock-btn other-btn" onclick="openDrawer()">
+            <span class="dock-icon">➕</span>
+            <span class="dock-title">Diğer Seç</span>
+          </button>
+        </div>
+      `;
+    }
+
+    function renderLogList(logs) {
+      return `
+        <div class="log-section">
+          <div class="log-header">
+            <span>${state.activeDay === 'today' ? 'Bugün İçtiklerim' : 'Dün İçtiklerim (Telafi Modu Açık)'}</span>
+            <span>${logs.length} kayıt</span>
+          </div>
+          ${logs.length === 0 ? `<div style="font-size:12px;color:#94a3b8;padding:6px 0;">Henüz kayıt yok.</div>` :
+            logs.slice(0, 5).map(item => {
+              const p = PORTIONS[item.portionId];
+              return `
+                <div class="log-item">
+                  <span><b>${p.icon} ${p.title}</b> <span style="color:#64748b;font-size:11px;">(${item.time} · net ${Math.round(p.ml*p.factor)} ml)</span></span>
+                  <button class="del-btn" onclick="removeLog(${item.id})">Sil</button>
+                </div>
+              `;
+            }).join('')
+          }
+        </div>
+      `;
+    }
+
+    function renderDrawerContent() {
+      const groups = [
+        { title: '🫖 Çay Seçenekleri', ids: ['tea_ince', 'tea_ajda', 'tea_mug'], cls: 'tea-card' },
+        { title: '☕ Kahve Seçenekleri', ids: ['coffee_turk', 'coffee_mug'], cls: 'coffee-card' },
+        { title: '🥛 Ayran Seçenekleri', ids: ['ayran_small', 'ayran_large'], cls: 'ayran-card' },
+        { title: '💧 Su Seçenekleri', ids: ['water_glass', 'water_sip', 'water_mug', 'water_bottle'], cls: 'water-card' }
+      ];
+      document.getElementById('drawerContent').innerHTML = groups.map(g => `
+        <div class="drawer-cat">${g.title}</div>
+        <div class="cup-grid">
+          ${g.ids.map(id => {
+            const p = PORTIONS[id];
+            return `
+              <button class="cup-card ${g.cls}" onclick="logPortion('${id}')">
+                <span class="cup-emoji">${p.icon}</span>
+                <div>
+                  <div class="cup-name">${p.title}</div>
+                </div>
+              </button>
+            `;
+          }).join('')}
+        </div>
+      `).join('');
+    }
+
+    function renderNotificationAndInspector(prog) {
+      // Update Samsung One UI notification preview based on state
+      const notifTitle = document.getElementById('notifTitle');
+      const notifText = document.getElementById('notifText');
+      const notifActions = document.getElementById('notifActions');
+
+      if (prog.pct >= 100) {
+        notifTitle.textContent = '🎉 Bugünkü hedefin tamamlandı!';
+        notifText.textContent = 'Bugün başka hatırlatma gönderilmeyecek. Yarın sabah 09:00\'da görüşürüz!';
+      } else if (prog.isOtherCapReached) {
+        notifTitle.textContent = 'Çay/kahve kotan doldu! Saf su zamanı 💧';
+        notifText.textContent = `Hedefin için kalan ${prog.remainingGlasses} su bardağını saf su ile tamamlamalısın.`;
+        notifActions.innerHTML = `
+          <button class="oneui-btn water-act" onclick="logPortion('water_glass', true)">+Su (1 Su Bardağı)</button>
+          <button class="oneui-btn water-act" onclick="logPortion('water_sip', true)">+Su (1 Yudum)</button>
+        `;
+      } else {
+        notifTitle.textContent = 'Bir bardak suya ne dersin? 💧';
+        notifText.textContent = `Bugünkü hedefinin tamamlanmasına ${prog.remainingGlasses} su bardağı (${prog.remainingMl} ml) kaldı.`;
+        notifActions.innerHTML = `
+          <button class="oneui-btn water-act" onclick="logPortion('water_glass', true)">+Su (1 Su Bardağı)</button>
+          <button class="oneui-btn water-act" onclick="logPortion('water_sip', true)">+Su (1 Yudum)</button>
+          <button class="oneui-btn" onclick="openDrawerFromNotif()">Diğer</button>
+        `;
+      }
+
+      // Update Streak badge
+      const yProg = computeDayProgress(state.yesterdayLogs, state.goalMl);
+      const todayBonus = prog.pct >= 100 ? 1 : 0;
+      const streakCount = state.baseStreak + (yProg.pct >= 100 ? 1 : 0) + todayBonus;
+      const shieldText = yProg.pct < 80 ? '🛡️ Haftalık Mola Kullanıldı' : '🛡️ Kalkan Hazır';
+      document.getElementById('streakBadge').textContent = `🔥 ${streakCount} Gün · ${shieldText}`;
+
+      // Update State Inspector
+      document.getElementById('stateInspector').innerHTML = `
+        <div class="state-cell">
+          <div class="state-cell-label">Saf Su Toplamı</div>
+          <div class="state-cell-val" style="color:#38bdf8">${prog.pureWaterMl} / ${prog.minPureWaterMl} ml</div>
+        </div>
+        <div class="state-cell">
+          <div class="state-cell-label">Diğer İçecek (Sayılan / Ham)</div>
+          <div class="state-cell-val" style="color:#fbbf24">${prog.countedOtherMl} / ${prog.rawOtherEffectiveMl} ml</div>
+        </div>
+        <div class="state-cell">
+          <div class="state-cell-label">Seri Durumu (${state.activeDay === 'today' ? 'Bugün' : 'Dün'})</div>
+          <div class="state-cell-val" style="color:#34d399">${prog.streakOutcome}</div>
+        </div>
+      `;
+    }
+
+    function renderAll() {
+      const vKey = getCurrentVariant();
+      const vObj = VARIANTS.find(v => v.key === vKey);
+      document.getElementById('variantLabel').textContent = vObj.name;
+
+      const logs = getActiveLogs();
+      const prog = computeDayProgress(logs, state.goalMl);
+
+      const body = document.getElementById('screenBody');
+      if (vKey === 'A') body.innerHTML = renderVariantA(prog, logs);
+      else if (vKey === 'B') body.innerHTML = renderVariantB(prog, logs);
+      else body.innerHTML = renderVariantC(prog, logs);
+
+      renderDrawerContent();
+      renderNotificationAndInspector(prog);
+    }
+
+    renderAll();
+  </script>
+</body>
+</html>
